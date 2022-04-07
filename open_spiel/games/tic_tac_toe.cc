@@ -180,7 +180,6 @@ void TicTacToeState::UndoAction(Player player, Action move) {
   outcome_ = kInvalidPlayer;
   num_moves_ -= 1;
   history_.pop_back();
-  --move_number_;
 }
 
 std::unique_ptr<State> TicTacToeState::Clone() const {
@@ -189,6 +188,50 @@ std::unique_ptr<State> TicTacToeState::Clone() const {
 
 TicTacToeGame::TicTacToeGame(const GameParameters& params)
     : Game(kGameType, params) {}
+
+TicTacToeState::TicTacToeState(std::shared_ptr<const Game> game,
+                                   const std::string& str)
+    : State(game) {
+  int xs = 0;
+  int os = 0;
+  int r = 5;
+  int c = 0;
+  for (const char ch : str) {
+    switch (ch) {
+      case '.':
+        BoardAt(r, c) = CellState::kEmpty;
+        break;
+      case 'x':
+        ++xs;
+        BoardAt(r, c) = CellState::kCross;
+        break;
+      case 'o':
+        ++os;
+        BoardAt(r, c) = CellState::kNought;
+        break;
+    }
+    if (ch == '.' || ch == 'x' || ch == 'o') {
+      ++c;
+      if (c >= kNumCols) {
+        r--;
+        c = 0;
+      }
+    }
+  }
+  SPIEL_CHECK_TRUE(xs == os || xs == (os + 1));
+  SPIEL_CHECK_TRUE(r == -1 && ("Problem parsing state (incorrect rows)."));
+  SPIEL_CHECK_TRUE(c == 0 &&
+                   ("Problem parsing state (column value should be 0)"));
+  current_player_ = (xs == os) ? 0 : 1;
+
+  if (HasLine(0)) {
+    outcome_ = Outcome::kPlayer1;
+  } else if (HasLine(1)) {
+    outcome_ = Outcome::kPlayer2;
+  } else if (IsFull()) {
+    outcome_ = Outcome::kDraw;
+  }
+}
 
 }  // namespace tic_tac_toe
 }  // namespace open_spiel

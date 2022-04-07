@@ -36,8 +36,8 @@ namespace connect_four {
 
 // Constants.
 inline constexpr int kNumPlayers = 2;
-inline constexpr int kRows = 6;
-inline constexpr int kCols = 7;
+inline constexpr int kNumRows = 6;
+inline constexpr int kNumCols = 7;
 inline constexpr int kNumCells = kRows * kCols;
 inline constexpr int kCellStates =
     1 + kNumPlayers;  // player 0, player 1, empty
@@ -80,10 +80,6 @@ class ConnectFourState : public State {
       Action action) const override {
     return {action};
   }
-  std::unique_ptr<State> ResampleFromInfostate(
-      int player_id, std::function<double()> rng) const override {
-    return Clone();
-  }
 
  protected:
   void DoApplyAction(Action move) override;
@@ -108,6 +104,10 @@ class ConnectFourGame : public Game {
   int NumDistinctActions() const override { return kCols; }
   std::unique_ptr<State> NewInitialState() const override {
     return std::unique_ptr<State>(new ConnectFourState(shared_from_this()));
+  }
+  std::unique_ptr<State> NewInitialState(
+      const std::string& fen) const override {
+    return absl::make_unique<State>(shared_from_this(), fen);
   }
   int NumPlayers() const override { return kNumPlayers; }
   double MinUtility() const override { return -1; }

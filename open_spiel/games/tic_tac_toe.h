@@ -52,7 +52,8 @@ enum class CellState {
 class TicTacToeState : public State {
  public:
   TicTacToeState(std::shared_ptr<const Game> game);
-
+  explicit TicTacToeState(std::shared_ptr<const Game> game,
+                          const std::string& str);
   TicTacToeState(const TicTacToeState&) = default;
   TicTacToeState& operator=(const TicTacToeState&) = default;
 
@@ -70,7 +71,7 @@ class TicTacToeState : public State {
   std::unique_ptr<State> Clone() const override;
   void UndoAction(Player player, Action move) override;
   std::vector<Action> LegalActions() const override;
-  CellState BoardAt(int cell) const { return board_[cell]; }
+  CellState& BoardAt(int row, int column) const { return board_[row * kNumCols + column]; }
   CellState BoardAt(int row, int column) const {
     return board_[row * kNumCols + column];
   }
@@ -94,6 +95,10 @@ class TicTacToeGame : public Game {
   int NumDistinctActions() const override { return kNumCells; }
   std::unique_ptr<State> NewInitialState() const override {
     return std::unique_ptr<State>(new TicTacToeState(shared_from_this()));
+  }
+  std::unique_ptr<State> NewInitialState(
+      const std::string& fen) const override {
+    return absl::make_unique<State>(shared_from_this(), fen);
   }
   int NumPlayers() const override { return kNumPlayers; }
   double MinUtility() const override { return -1; }
